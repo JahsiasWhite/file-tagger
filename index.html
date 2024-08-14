@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>File Tagger</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div id="app">
+      <div id="menu">
+        <h2>All Tags</h2>
+        <ul id="tagMenu"></ul>
+      </div>
+      <div id="content">
+        <h1>File Tagger</h1>
+        <div id="directoryView">
+          <input id="dirPath" type="text" placeholder="Enter directory path" />
+          <button id="loadDir">Load Directory</button>
+          <button id="toggleView">Toggle View</button>
+          <div id="activeFilters"></div>
+          <div id="fileListContainer">
+            <ul id="fileList"></ul>
+            <div id="fileGrid" style="display: none"></div>
+          </div>
+          <div id="tagSectionContainer"></div>
+          <div id="tagSection" style="display: none">
+            <!-- <h2>Tags for: <span id="selectedFile"></span></h2> -->
+            <!-- <input id="newTag" type="text" placeholder="Enter new tag" /> -->
+            <ul id="tagList"></ul>
+            <div id="tagInputContainer">
+              <input type="text" id="newTag" placeholder="Enter new tag" />
+              <div id="tagSuggestion"></div>
+            </div>
+            <button id="addTag">Add Tag</button>
+            <p>Tags stored at: <span id="tagLocation"></span></p>
+            <p>File location: <span id="selectedFile"></span></p>
+          </div>
+        </div>
+        <div id="tagView" style="display: none">
+          <h2>Files tagged with: <span id="currentTagView"></span></h2>
+          <ul id="taggedFileList"></ul>
+          <button id="backToDir">Back to Directory View</button>
+        </div>
+      </div>
+    </div>
+    <script src="renderer.js"></script>
+  </body>
+</html>

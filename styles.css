@@ -1,0 +1,221 @@
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  display: flex;
+}
+
+#app {
+  display: flex;
+  width: 100%;
+  height: 100vh;
+}
+
+#menu {
+  width: 200px;
+  background-color: #f0f0f0;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+#content {
+  flex-grow: 1;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+li {
+  cursor: pointer;
+  padding: 5px;
+  margin: 2px 0;
+  background-color: #f0f0f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+li:hover {
+  background-color: #e0e0e0;
+}
+
+.existingTagsContainer:hover {
+  background-color: #f0f0f0;
+  cursor: auto;
+}
+
+li input,
+button {
+  margin: 5px 0;
+  padding: 5px;
+}
+
+.tag-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.tag {
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.8em;
+  color: black;
+  text-shadow: 0 0 2px white;
+  cursor: pointer;
+}
+
+.file-name {
+  flex-grow: 1;
+}
+
+.tag {
+  color: black;
+  text-shadow: 0 0 2px white;
+}
+
+#tagMenu .tag {
+  display: block;
+  margin-bottom: 5px;
+}
+
+/* Add these new styles */
+#fileGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 10px;
+  padding: 10px;
+}
+
+.grid-item {
+  border: 1px solid #ddd;
+  padding: 10px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.grid-item img,
+.grid-item video {
+  max-width: 150px;
+  max-height: 150px;
+  object-fit: contain;
+  margin-bottom: 5px;
+}
+
+.no-preview {
+  width: 150px;
+  height: 150px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f0f0f0;
+  color: #888;
+  font-size: 14px;
+}
+
+.grid-item video {
+  max-width: 100%;
+  height: auto;
+  margin-bottom: 5px;
+}
+
+.grid-item .file-name {
+  word-break: break-all;
+}
+
+.grid-item .tag-container {
+  margin-top: 5px;
+}
+
+/* Existing styles remain unchanged */
+
+#tagInputContainer {
+  position: relative;
+  display: inline-block;
+}
+
+#newTag {
+  width: 200px;
+  padding-right: 30px; /* Make room for the suggestion */
+}
+
+#tagSuggestion {
+  position: absolute;
+  left: 150px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  display: none;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.8em;
+  color: black;
+  text-shadow: 0 0 2px white;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: calc(100% - 10px);
+}
+
+/* For the input when suggestion is visible */
+#newTag:focus + #tagSuggestion {
+  background-color: transparent !important;
+}
+
+.tag .delete-tag {
+  background: none;
+  border: none;
+  color: #333;
+  cursor: pointer;
+  font-size: 1.2em;
+  margin-left: 5px;
+  padding: 0;
+}
+
+.tag .delete-tag:hover {
+  color: #f00;
+}
+
+#activeFilters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-bottom: 10px;
+}
+
+#activeFilters .tag {
+  display: flex;
+  align-items: center;
+}
+
+#activeFilters .remove-filter {
+  background: none;
+  border: none;
+  color: #333;
+  cursor: pointer;
+  font-size: 1.2em;
+  margin-left: 5px;
+  padding: 0;
+}
+
+#activeFilters .remove-filter:hover {
+  color: #f00;
+}
+
+#tagSectionContainer {
+  margin: 10px 0;
+  margin-top: -2px;
+  padding: 10px;
+  background-color: #f0f0f0;
+  border-radius: 0 0 5px 5px;
+}
+
+#tagSection {
+  margin-top: 0;
+}
