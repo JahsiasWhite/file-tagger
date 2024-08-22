@@ -7,7 +7,16 @@
   <body>
     <div id="app">
       <div id="menu">
-        <h2>All Tags</h2>
+        <div class="dropdown">
+          <h2>All Tags <span class="dropdown-arrow">▼</span></h2>
+          <div
+            class="dropdown-content"
+            id="subdirectoryList"
+            style="display: none"
+          >
+            <!-- Subdirectories will be populated here -->
+          </div>
+        </div>
         <ul id="tagMenu"></ul>
       </div>
       <div id="content">
@@ -16,12 +25,14 @@
           <input id="dirPath" type="text" placeholder="Enter directory path" />
           <button id="loadDir">Load Directory</button>
           <button id="toggleView">Toggle View</button>
+          <button id="syncTags">Sync Tags</button>
+          <input type="checkbox" id="showSubdirectoriesToggle"> Show files in subdirectories </input>
           <div id="activeFilters"></div>
           <div id="fileListContainer">
             <ul id="fileList"></ul>
             <div id="fileGrid" style="display: none"></div>
           </div>
-          <div id="tagSectionContainer"></div>
+          <!-- <div id="tagSectionContainer"></div> -->
           <div id="tagSection" style="display: none">
             <!-- <h2>Tags for: <span id="selectedFile"></span></h2> -->
             <!-- <input id="newTag" type="text" placeholder="Enter new tag" /> -->

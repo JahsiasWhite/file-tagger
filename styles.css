@@ -24,6 +24,10 @@ body {
   overflow-y: auto;
 }
 
+#dirPath {
+  width: 50%;
+}
+
 ul {
   list-style-type: none;
   padding: 0;
@@ -214,8 +218,38 @@ button {
   padding: 10px;
   background-color: #f0f0f0;
   border-radius: 0 0 5px 5px;
+  grid-column: span 3;
 }
 
 #tagSection {
   margin-top: 0;
+}
+
+.dropdown {
+  /* position: relative;
+  display: inline-block; */
+}
+
+.dropdown-content {
+  display: none;
+  position: absolute;
+  background-color: #f9f9f9;
+  min-width: 160px;
+  box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+  z-index: 1;
+}
+
+.dropdown-content label {
+  color: black;
+  padding: 12px 16px;
+  text-decoration: none;
+  display: block;
+}
+
+.dropdown-content label:hover {
+  background-color: #f1f1f1;
+}
+
+.dropdown-arrow {
+  cursor: pointer;
 }

@@ -124,17 +124,71 @@ async function writeSettingsFile(settings) {
   await fs.writeFile(settingsFilePath, JSON.stringify(settings, null, 2));
 }
 
+ipcMain.handle('get-subdirectories', async () => {
+  const tags = await readTagsFile();
+  const subdirectories = new Set();
+  for (const filePath in tags) {
+    if (filePath !== 'tagColors') {
+      const subdir = path.dirname(filePath).split(path.sep).pop();
+      subdirectories.add(subdir);
+    }
+  }
+  return Array.from(subdirectories);
+});
+
+ipcMain.handle('get-filtered-tags', async (event, selectedSubdirs) => {
+  const tags = await readTagsFile();
+  const filteredTags = new Set();
+
+  for (const [filePath, fileTags] of Object.entries(tags)) {
+    if (filePath !== 'tagColors') {
+      const subdir = path.dirname(filePath).split(path.sep).pop();
+      if (selectedSubdirs.includes(subdir)) {
+        fileTags.forEach((tag) => filteredTags.add(tag));
+      }
+    }
+  }
+
+  return Array.from(filteredTags);
+});
+
+let showSubdirectories = false;
+ipcMain.handle('toggle-show-subdirectories', (event, value) => {
+  showSubdirectories = value;
+  return showSubdirectories;
+});
+
 ipcMain.handle('read-directory', async (event, dirPath) => {
   console.log('Reading directory');
   try {
-    const files = await fs.readdir(dirPath);
-    console.log('Returning files: ', files);
+    let files;
+    if (showSubdirectories) {
+      files = await readDirectoryRecursively(dirPath);
+    } else {
+      files = await fs.readdir(dirPath);
+    }
     return files;
   } catch (error) {
     console.error('Failed to read directory:', error);
     return [];
   }
 });
+
+async function readDirectoryRecursively(dirPath, baseDir = dirPath) {
+  const dirents = await fs.readdir(dirPath, { withFileTypes: true });
+  const files = await Promise.all(
+    dirents.map(async (dirent) => {
+      const res = path.resolve(dirPath, dirent.name);
+      if (dirent.isDirectory()) {
+        return readDirectoryRecursively(res, baseDir);
+      } else {
+        // Maintain the full path relative to the base directory
+        return path.relative(baseDir, res).replace(/\\/g, '/'); // Convert to Unix-style paths
+      }
+    })
+  );
+  return Array.prototype.concat(...files);
+}
 
 ipcMain.handle('read-file-tags', async (event, filePath) => {
   const tags = await readTagsFile();
@@ -185,6 +239,7 @@ ipcMain.handle('get-files-with-tag', async (event, tag) => {
 });
 
 ipcMain.handle('save-last-directory', async (event, dirPath) => {
+  console.log('Saving directory: ', dirPath);
   const settings = await readSettingsFile();
   settings.lastDirectory = dirPath;
   await writeSettingsFile(settings);
@@ -232,6 +287,7 @@ ipcMain.handle('generate-thumbnails', async (event, filePaths) => {
                 folder: path.dirname(thumbnailPath),
                 size: '150x?',
               })
+              .outputOptions(['-frames:v 1', '-q:v 2'])
               .on('end', resolve)
               .on('error', reject);
           });

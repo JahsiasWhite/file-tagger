@@ -3,17 +3,24 @@ const path = require('path');
 
 const dirPathInput = document.getElementById('dirPath');
 const loadDirButton = document.getElementById('loadDir');
-
 const toggleViewButton = document.getElementById('toggleView');
+const syncTagsButton = document.getElementById('syncTags');
+
+// List containers
 const fileListContainer = document.getElementById('fileListContainer');
 const fileList = document.getElementById('fileList');
 const fileGrid = document.getElementById('fileGrid');
 
+// Input & Buttons
 const selectedFileSpan = document.getElementById('selectedFile');
 const directoryView = document.getElementById('directoryView');
 const currentTagView = document.getElementById('currentTagView');
 const backToDirButton = document.getElementById('backToDir');
+const showSubdirectoriesToggle = document.getElementById(
+  'showSubdirectoriesToggle'
+);
 
+// Tag Details
 const tagList = document.getElementById('tagList');
 const tagView = document.getElementById('tagView');
 const tagSection = document.getElementById('tagSection');
@@ -22,7 +29,11 @@ let addTagButton = document.getElementById('addTag');
 let tagSuggestion = document.getElementById('tagSuggestion');
 const tagLocationSpan = document.getElementById('tagLocation');
 const taggedFileList = document.getElementById('taggedFileList');
+
+// Side-Menu
 const tagMenu = document.getElementById('tagMenu');
+const dropdownArrow = document.querySelector('.dropdown-arrow');
+const dropdownContent = document.getElementById('subdirectoryList');
 
 let currentFilePath = '';
 let currentTags = [];
@@ -71,10 +82,19 @@ backToDirButton.addEventListener('click', () => {
   directoryView.style.display = 'block';
 });
 
+showSubdirectoriesToggle.addEventListener('change', async () => {
+  await ipcRenderer.invoke(
+    'toggle-show-subdirectories',
+    showSubdirectoriesToggle.checked
+  );
+  const dirPath = dirPathInput.value; // TODO just do this in here
+  await loadDirectory(dirPath);
+});
+
 async function loadDirectory(dirPath) {
-  console.error('LOADING DIRECTORY');
+  populateSubdirectories(); // TODO: Maybe unneccessary
+
   await applyFilters();
-  console.error('Updating tag menu');
   updateTagMenu();
   ipcRenderer.invoke('save-last-directory', dirPath);
 }
@@ -95,11 +115,12 @@ async function applyFilters() {
     }
   }
 
-  console.error('RENDERING FILES');
+  console.error(files, dirPath);
   await renderFiles(filteredFiles, dirPath);
 }
 
 async function toggleTagFilter(tag) {
+  console.error('toggleTagFilter');
   if (activeFilters.has(tag)) {
     activeFilters.delete(tag);
   } else {
@@ -142,14 +163,13 @@ async function renderListView(files, dirPath) {
   for (const file of files) {
     const filePath = path.join(dirPath, file);
     const tags = await ipcRenderer.invoke('read-file-tags', filePath);
-    console.error(tags);
     const listItem = createListViewItem(file, tags, filePath);
     fileList.appendChild(listItem);
   }
 }
 async function renderGridView(files, dirPath) {
   fileGrid.innerHTML = '';
-  const batchSize = 5;
+  const batchSize = 12; // TODO: 21 was slightly slower. Should do more testing
   const batches = Math.ceil(files.length / batchSize);
 
   for (let i = 0; i < batches; i++) {
@@ -246,6 +266,58 @@ loadDirButton.addEventListener('click', () => {
   loadDirectory(dirPath);
 });
 
+dropdownArrow.addEventListener('click', () => {
+  // Flip arrow
+  dropdownContent.style.display =
+    dropdownContent.style.display === 'none' ? 'block' : 'none';
+  dropdownArrow.textContent =
+    dropdownContent.style.display === 'none' ? '▼' : '▲';
+});
+
+// Adds all found subdirectories to the dropdown arrow
+async function populateSubdirectories() {
+  const subdirectories = await ipcRenderer.invoke('get-subdirectories');
+  dropdownContent.innerHTML = '';
+  subdirectories.forEach((subdir) => {
+    const label = document.createElement('label');
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.value = subdir;
+    checkbox.checked = true; // Default to checked
+    label.appendChild(checkbox);
+    label.appendChild(document.createTextNode(subdir));
+    dropdownContent.appendChild(label);
+
+    checkbox.addEventListener('change', updateVisibleTags);
+  });
+}
+
+// Update the list of visible tags in the menu based on selected subdirectories
+async function updateVisibleTags() {
+  const selectedSubdirs = Array.from(
+    dropdownContent.querySelectorAll('input:checked')
+  ).map((checkbox) => checkbox.value);
+
+  const filteredTags = await ipcRenderer.invoke(
+    'get-filtered-tags',
+    selectedSubdirs
+  );
+  console.error(filteredTags);
+  updateFilteredTagMenu(filteredTags);
+}
+
+function updateFilteredTagMenu(tags) {
+  tagMenu.innerHTML = '';
+  tags.forEach((tag) => {
+    const li = document.createElement('li');
+    li.innerHTML = `<span class="tag" style="background-color: ${getTagColor(
+      tag
+    )}">${tag}</span>`;
+    li.addEventListener('click', () => toggleTagFilter(tag));
+    tagMenu.appendChild(li);
+  });
+}
+
 // Hide the tagSection when clicking outside of it
 // document.addEventListener('click', (event) => {
 //   const tagSection = document.getElementById('tagSection');
@@ -262,6 +334,16 @@ loadDirButton.addEventListener('click', () => {
 let currentOpenTagSection = null;
 // When a file is clicked, we load information about it and the ability to add new tags
 async function loadFileTags(filePath) {
+  if (currentOpenTagSection) {
+    currentOpenTagSection.remove();
+
+    const prevFile = currentOpenTagSection.querySelector('#selectedFile');
+    if (prevFile.innerHTML === filePath) {
+      prevFile.innerHTML = '';
+      return;
+    }
+  }
+
   currentFilePath = filePath;
   currentTags = await ipcRenderer.invoke('read-file-tags', filePath);
   selectedFileSpan.textContent = filePath;
@@ -284,8 +366,9 @@ async function loadFileTags(filePath) {
   }
 
   // Close the previously opened tagSection if it exists
+  // TODO Remove? And just use the one uptop?
   if (currentOpenTagSection) {
-    currentOpenTagSection.remove();
+    // currentOpenTagSection.remove();
   }
 
   // Create a new tagSectionContainer
@@ -346,12 +429,13 @@ function handleNewTagKeydown(e) {
     newTagInput.value = tagSuggestion.textContent;
     tagSuggestion.textContent = '';
     tagSuggestion.style.display = 'none';
+  } else if (e.key === 'Enter') {
+    handleAddTagButtonClick();
   }
 }
 
 async function handleAddTagButtonClick() {
   const newTag = newTagInput.value.trim();
-  console.error('WORKS', newTag, newTagInput.value);
   if (newTag && !currentTags.includes(newTag)) {
     currentTags.push(newTag);
     await ipcRenderer.invoke('write-file-tags', currentFilePath, currentTags);
@@ -401,18 +485,38 @@ async function updateTagLocation() {
   }
 }
 
+async function syncTags() {
+  try {
+    const result = await ipcRenderer.invoke('sync-tags');
+    if (result.error) {
+      console.error('Error syncing tags:', result.error);
+    } else {
+      console.log(
+        `Updated ${result.updatedCount} out of ${result.totalFiles} files.`
+      );
+      populateSubdirectories(); // Refresh with new tags
+    }
+  } catch (error) {
+    console.error('Error calling sync-tags:', error);
+  }
+}
+
 /* For searching through existing tags */
 newTagInput.addEventListener('input', handleNewTagInput);
-
 newTagInput.addEventListener('keydown', handleNewTagKeydown);
-
 addTagButton.addEventListener('click', handleAddTagButtonClick);
+
+// Sync Tags
+syncTagsButton.addEventListener('click', syncTags);
 
 // Initialize tag location, menu, and load last directory
 async function initialize() {
   updateTagLocation();
   tagColors = await ipcRenderer.invoke('get-tag-colors');
+
   updateTagMenu();
+  populateSubdirectories();
+
   const lastDirectory = await ipcRenderer.invoke('get-last-directory');
   if (lastDirectory) {
     dirPathInput.value = lastDirectory;
@@ -420,7 +524,4 @@ async function initialize() {
   }
 }
 
-// Initialize tag location and menu
-// updateTagLocation();
-// updateTagMenu();
 initialize();
