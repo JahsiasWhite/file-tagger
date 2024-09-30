@@ -4,6 +4,7 @@ const fs = require('fs').promises;
 const ffmpeg = require('fluent-ffmpeg');
 
 let mainWindow;
+let showSubdirectories = false;
 const tagsFilePath = path.join(app.getPath('userData'), 'fileTags.json');
 const settingsFilePath = path.join(app.getPath('userData'), 'settings.json');
 
@@ -11,6 +12,7 @@ function createWindow() {
   mainWindow = new BrowserWindow({
     width: 800,
     height: 600,
+    autoHideMenuBar: true,
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false,
@@ -152,7 +154,6 @@ ipcMain.handle('get-filtered-tags', async (event, selectedSubdirs) => {
   return Array.from(filteredTags);
 });
 
-let showSubdirectories = false;
 ipcMain.handle('toggle-show-subdirectories', (event, value) => {
   showSubdirectories = value;
   return showSubdirectories;

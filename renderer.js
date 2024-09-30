@@ -92,10 +92,10 @@ showSubdirectoriesToggle.addEventListener('change', async () => {
 });
 
 async function loadDirectory(dirPath) {
-  populateSubdirectories(); // TODO: Maybe unneccessary
+  // populateSubdirectories(); // TODO: Maybe unneccessary
+  // updateTagMenu();
 
   await applyFilters();
-  updateTagMenu();
   ipcRenderer.invoke('save-last-directory', dirPath);
 }
 
